@@ -12,24 +12,23 @@ Color:
 
 
 """
-
-tubes = np.array(
+tubesOriginal = np.array(
     [
         [2,1,4,4],[1,4,4,2],[2,3,1,3],
         [3,1,3,2],[0,0,0,0],[0,0,0,0]
     ]
 )
 
-tubesOriginal = cp.deepcopy(tubes)
+tubes1 = cp.deepcopy(tubesOriginal)
 
 moves = []
 
-def solve():
+def solve(tubes):
     maxTries = 20000
     counter = 0
     nTubes = len(tubes)
 
-    while not isDone() and counter < maxTries:
+    while not isDone(tubes) and counter < maxTries:
         counter += 1
 
         fromIndex = random.randint(0,nTubes-1)
@@ -42,7 +41,7 @@ def solve():
         if tubeIsOneColor(fromTube):
             continue
 
-        testMove = move(fromIndex, toIndex)
+        testMove = move(tubes, fromIndex, toIndex)
 
         if(testMove == True):
             moves.append([fromIndex,toIndex])
@@ -56,7 +55,7 @@ def solve():
     print(counter)
 
 
-def isDone():
+def isDone(tubes):
     for tube in tubes:
         if not tubeIsOneColor(tube):
             return False
@@ -76,7 +75,7 @@ def tubeIsOneColor(tube):
             return False
     return True
 
-def move(fromN:int, toN:int):
+def move(tubes, fromN:int, toN:int):
     """
     fromN = tube to grab from
     toN = tupe to add to
@@ -105,7 +104,7 @@ def move(fromN:int, toN:int):
         return False, "Error: To tube full"
 
     if not topFromBouble == topToBouble:
-        if not topToIndex == 3:
+        if not toEmpty:
             return False, "Error: Boubles don't match"
 
     """Set to tube"""
@@ -121,5 +120,5 @@ def move(fromN:int, toN:int):
     return True
 
 
-solve()
-#print(move(4,0))
+solve(tubes1)
+#print(move(tubes1, 5,4))
