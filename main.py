@@ -1,65 +1,99 @@
 import numpy as np
 import copy as cp
 import random
-
-"""
-Color:
-
-1 - red
-2 - green
-3 - blue
-4 - yellow
+import datetime
+from tubes import tubesOriginal
 
 
-"""
-tubesOriginal = np.array(
-    [
-        [2,1,4,4],[1,4,4,2],[2,3,1,3],
-        [3,1,3,2],[0,0,0,0],[0,0,0,0]
-    ]
-)
+def solve(tubes):  
 
-tubes1 = cp.deepcopy(tubesOriginal)
+    thistubes = cp.deepcopy(tubes)
 
-moves = []
+    bestRun = 1000
+    bestMoves = []
+    badMoves = []
+    totalMoves = 0
+    successfulRuns = 0
+    
+    for i in range(20):
+        moves = []
+        maxTries = 8000
+        counter = 0
+        nTubes = len(thistubes)
+        while not isDone(thistubes) and counter < maxTries:
+            counter += 1
 
-def solve(tubes):
-    maxTries = 20000
-    counter = 0
-    nTubes = len(tubes)
+            fromIndex = random.randint(0,nTubes-1)
+            toIndex = random.randint(0,nTubes-1)
 
-    while not isDone(tubes) and counter < maxTries:
-        counter += 1
+            if fromIndex == toIndex: continue
+            if not validateMove(thistubes, fromIndex, toIndex):
+                continue
 
-        fromIndex = random.randint(0,nTubes-1)
-        toIndex = random.randint(0,nTubes-1)
+            fromTube = thistubes[fromIndex]
 
-        if fromIndex == toIndex: continue
+            if tubeIsOneColorFull(fromTube):
+                continue
 
-        fromTube = tubes[fromIndex]
+            if len(moves) > 0 and moves[-1][0] == toIndex and moves[-1][1] == fromIndex:
+                continue
 
-        if tubeIsOneColor(fromTube):
+            testMove = move(thistubes, fromIndex, toIndex)
+
+            if testMove == (True, False):
+                moves.append([fromIndex,toIndex])
+            elif testMove == (True, True):     #If flipped
+                moves.append([toIndex, fromIndex])
+        
+        if(not isDone(thistubes)):
+            #print("Could not solve.")
+            thistubes = cp.deepcopy(tubes)
+            badMoves.append(moves)              #Keep track of bad moves    
             continue
 
-        testMove = move(tubes, fromIndex, toIndex)
+        successfulRuns += 1
+        totalMoves += len(moves)
+        thistubes = cp.deepcopy(tubes)
 
-        if(testMove == True):
-            moves.append([fromIndex,toIndex])
+        if len(moves) < bestRun:
+            bestRun = len(moves)
+            bestMoves = moves
+
         
-    print(len(moves))
+
     file = open("moves.txt", "w")
 
-    for m in moves:
+    for m in bestMoves:
         file.write(str(m)+str("\n"))
     file.close()
-    print(counter)
+
+    print("best: " + str(bestRun))
+    #print("Avg.: " + str(totalMoves/successfulRuns))
+    print("Successful.: " + str(successfulRuns))
 
 
 def isDone(tubes):
     for tube in tubes:
-        if not tubeIsOneColor(tube):
+        if not tubeIsOneColorFull(tube):
             return False
     return True
+
+def validateMove(tubes, fromIndex, toIndex):
+    if fromIndex == toIndex:
+        return False
+
+    fromTube = tubes[fromIndex]
+    toTube = tubes[toIndex]
+
+    if tubeIsOneColorFull(fromTube) \
+            or tubeIsEmpty(fromTube) \
+            or tubeIsFull(toTube):
+        return False
+
+    if tubeIsOneColor(fromTube) and tubeIsEmpty(toTube):
+        return False
+
+    return bubblesMatch(fromTube, toTube)
             
 
 def tubeIsEmpty(tube):
@@ -68,28 +102,60 @@ def tubeIsEmpty(tube):
             return False
     return True
 
-def tubeIsOneColor(tube):
+def tubeIsFull(tube):
+    return not 0 in tube
+
+def tubeIsOneColorFull(tube):
     c = tube[0]
     for b in tube:
         if not b == c:
             return False
     return True
 
+def tubeIsOneColor(tube):
+    c = tube[-1] #Find the color in the bottom
+    for b in tube:
+        if not b == c and not b == 0:
+            return False
+    return True
+
+def bubblesMatch(fromTube, toTube):
+    topFrom = np.where(fromTube>0)[0]
+    topTo = np.where(toTube>0)[0]
+
+    if tubeIsEmpty(toTube):
+        return True
+
+    topToIndex = topTo[0]
+    topFromIndex = topFrom[0]
+
+    return fromTube[topFromIndex] == toTube[topToIndex]
+
+def tubeSize(tube):
+    return len(np.where(tube>0)[0])
+
 def move(tubes, fromN:int, toN:int):
     """
     fromN = tube to grab from
     toN = tupe to add to
     """
+
     fromTube = tubes[fromN]
     toTube = tubes[toN]
+    flipped = False
+
+    if tubeIsOneColor(fromTube) and tubeIsOneColor(toTube):
+        if tubeSize(fromTube) > tubeSize(toTube) and not tubeIsEmpty(toTube):
+            fromTube = tubes[toN]
+            toTube = tubes[fromN]
+            flipped = True
+
     toEmpty:bool = False
 
     topFrom = np.where(fromTube>0)[0]
     topTo = np.where(toTube>0)[0]
 
-    if len(topFrom) == 0:
-        return False, "Error: From tube empty"
-    if len(topTo) == 0:
+    if tubeIsEmpty(toTube):
         toEmpty = True
         topToIndex = 3
     else:  
@@ -98,14 +164,6 @@ def move(tubes, fromN:int, toN:int):
     topFromIndex = topFrom[0]
 
     topFromBouble = fromTube[topFromIndex]
-    topToBouble = toTube[topToIndex]
-
-    if topToIndex == 0:
-        return False, "Error: To tube full"
-
-    if not topFromBouble == topToBouble:
-        if not toEmpty:
-            return False, "Error: Boubles don't match"
 
     """Set to tube"""
     if toEmpty:
@@ -117,8 +175,15 @@ def move(tubes, fromN:int, toN:int):
     fromTube[topFromIndex] = 0
 
     
-    return True
+    return True, flipped
 
+start = datetime.datetime.now()
+solve(tubesOriginal)
+end = datetime.datetime.now()
+diff = end-start
+print(diff.total_seconds())
 
-solve(tubes1)
-#print(move(tubes1, 5,4))
+# test = np.array([[0,1,1,1],[0,0,0,1]])
+# print(move(test,1,0))
+# print(test)
+
