@@ -15,17 +15,21 @@ def solve(tubes):
     totalMoves = 0
     successfulRuns = 0
     
-    for i in range(20):
+    for i in range(50):
         moves = []
-        maxTries = 8000
+        maxTries = 1000
         counter = 0
         nTubes = len(thistubes)
         while not isDone(thistubes) and counter < maxTries:
             counter += 1
 
             fromIndex = random.randint(0,nTubes-1)
+            
             toIndex = random.randint(0,nTubes-1)
-
+            # inefficient?
+            # if counter == 1: 
+            #     toIndex = nTubes-1
+            
             if fromIndex == toIndex: continue
             if not validateMove(thistubes, fromIndex, toIndex):
                 continue
