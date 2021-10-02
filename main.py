@@ -76,6 +76,63 @@ def solve(tubes):
     print("Successful.: " + str(successfulRuns))
 
 
+def solveRecursive(tubes):
+    thistubes = cp.deepcopy(tubes)
+    counter = 0
+    allSuccessfulMoves = []
+    moves = []
+    done = False
+    maxExceeded = 0
+
+    def solve(fromIndex, toIndex):
+        nonlocal done
+        nonlocal maxExceeded
+        #Safety net for stack overflow
+        nonlocal counter 
+        counter += 1
+        if counter > 1500: 
+            maxExceeded += 1
+            return
+
+        #BASE
+        # change to one or-if
+        if isDone(thistubes): 
+            done = True
+            return
+        if len(moves) > 0 and isReversed(moves[-1], [fromIndex,toIndex]): return
+        if not validateMove(thistubes,fromIndex,toIndex): return
+
+        testMove = move(thistubes, fromIndex, toIndex)
+        if testMove[0]:
+            if testMove[1]:
+                moves.append([toIndex, fromIndex])
+            else:
+                moves.append([fromIndex, toIndex])
+        else:
+            return
+
+
+        # RECURSION 
+        # for all possible moves at current stage
+        for i in range(len(thistubes)):
+            for j in range(len(thistubes)):
+                solve(i,j)
+
+    #Surround in 2d for loop
+    for i in range(len(thistubes)):
+        for j in [x for x in range(len(thistubes)) if x != i]:
+            moves = []
+            counter = 0
+            thistubes = cp.deepcopy(tubes)
+            solve(i,j)
+            if done:
+                allSuccessfulMoves.append(cp.deepcopy(moves))
+            done = False
+    print("done")
+
+    
+
+
 def isDone(tubes):
     for tube in tubes:
         if not tubeIsOneColorFull(tube):
@@ -91,14 +148,18 @@ def validateMove(tubes, fromIndex, toIndex):
 
     if tubeIsOneColorFull(fromTube) \
             or tubeIsEmpty(fromTube) \
-            or tubeIsFull(toTube):
+            or tubeIsFull(toTube) \
+            or tubeIsAlmostFull(fromTube):
         return False
 
     if tubeIsOneColor(fromTube) and tubeIsEmpty(toTube):
         return False
 
     return bubblesMatch(fromTube, toTube)
-            
+
+def isReversed(lastMove:list, thisMove:list):
+    return lastMove[0] == thisMove[1] \
+        and lastMove[1] == thisMove[0]
 
 def tubeIsEmpty(tube):
     for b in tube:
@@ -108,6 +169,10 @@ def tubeIsEmpty(tube):
 
 def tubeIsFull(tube):
     return not 0 in tube
+
+def tubeIsAlmostFull(tube):
+    return tube[0] == 0 \
+        and tube[1] == tube[2] == tube[3] != 0
 
 def tubeIsOneColorFull(tube):
     c = tube[0]
@@ -182,12 +247,11 @@ def move(tubes, fromN:int, toN:int):
     return True, flipped
 
 start = datetime.datetime.now()
-solve(tubesOriginal)
+solveRecursive(tubesOriginal)
 end = datetime.datetime.now()
 diff = end-start
 print(diff.total_seconds())
 
-# test = np.array([[0,1,1,1],[0,0,0,1]])
-# print(move(test,1,0))
-# print(test)
+# testTubes = [[0,2,2,0],[1,2,3,4],[1,1,1,1],[0,2,2,2],[0,0,0,0]]
+# print(tubeIsAlmostFull(testTubes[4]))
 
