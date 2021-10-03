@@ -109,7 +109,8 @@ def solveRecursive(tubes):
             return
         if len(moves1) > 0 and isReversed(moves1[-1], [fromIndex,toIndex]): return
         if not validateMove(tubes1,fromIndex,toIndex): return
-        if inInfiniteLoop(moves1): return
+        if inInfiniteLoop(moves1): 
+            return
 
 
         testMove = move(tubes1, fromIndex, toIndex)
@@ -208,6 +209,12 @@ def inInfiniteLoop(moves):
     if(count > 5): return True
     return False
 
+def inInfiniteLoop2(moves): #Does not work for 3-36
+    if len(moves) < 8: return False
+    lastMoves = moves[-4:]
+    prevMoves = moves[-8:-4]
+    return lastMoves == prevMoves
+
 def bubblesMatch(fromTube, toTube):
     topFrom = np.where(fromTube>0)[0]
     topTo = np.where(toTube>0)[0]
@@ -272,6 +279,7 @@ end = datetime.datetime.now()
 diff = end-start
 print(diff.total_seconds())
 
-# testMoves = [[0,2],[1,2],[1,2],[0,2],[2,1],[1,2],[1,2]]
+# testMoves = [[1,2],[3,4],[7,4],[6,5],[4,7],[5,6],[7,4],[6,5],[4,7],[5,6]]
 # inInfiniteLoop(testMoves)
+
 
