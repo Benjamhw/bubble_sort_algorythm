@@ -1,3 +1,4 @@
+from collections import Counter
 import numpy as np
 import copy as cp
 import random
@@ -84,51 +85,63 @@ def solveRecursive(tubes):
     done = False
     maxExceeded = 0
 
-    def solve(fromIndex, toIndex):
+    def solve(innertubes, innermoves, fromIndex, toIndex):
         nonlocal done
         nonlocal maxExceeded
         #Safety net for stack overflow
         nonlocal counter 
         counter += 1
-        if counter > 1500: 
+        if counter > 8000: 
             maxExceeded += 1
             return
 
+        tubes1 = cp.deepcopy(innertubes)
+        moves1 = cp.deepcopy(innermoves)
+
         #BASE
         # change to one or-if
-        if isDone(thistubes): 
+        if isDone(tubes1): 
             done = True
+            if len(allSuccessfulMoves) == 0:
+                allSuccessfulMoves.append(moves1)
+            elif len(allSuccessfulMoves[-1]) > len(moves1):
+                allSuccessfulMoves.append(moves1)
             return
-        if len(moves) > 0 and isReversed(moves[-1], [fromIndex,toIndex]): return
-        if not validateMove(thistubes,fromIndex,toIndex): return
+        if len(moves1) > 0 and isReversed(moves1[-1], [fromIndex,toIndex]): return
+        if not validateMove(tubes1,fromIndex,toIndex): return
+        if inInfiniteLoop(moves1): return
 
-        testMove = move(thistubes, fromIndex, toIndex)
+
+        testMove = move(tubes1, fromIndex, toIndex)
         if testMove[0]:
             if testMove[1]:
-                moves.append([toIndex, fromIndex])
+                moves1.append([toIndex, fromIndex])
             else:
-                moves.append([fromIndex, toIndex])
+                moves1.append([fromIndex, toIndex])
         else:
             return
 
 
         # RECURSION 
         # for all possible moves at current stage
-        for i in range(len(thistubes)):
-            for j in range(len(thistubes)):
-                solve(i,j)
+        for i in range(len(tubes1)):
+            for j in range(len(tubes1)):
+                solve(tubes1,moves1,i,j)
 
-    #Surround in 2d for loop
     for i in range(len(thistubes)):
         for j in [x for x in range(len(thistubes)) if x != i]:
             moves = []
             counter = 0
             thistubes = cp.deepcopy(tubes)
-            solve(i,j)
-            if done:
-                allSuccessfulMoves.append(cp.deepcopy(moves))
+            solve(thistubes,moves,i,j)
             done = False
-    print("done")
+    
+
+    file = open("moves.txt", "w")
+    if(len(allSuccessfulMoves)>0):
+        for m in allSuccessfulMoves[-1]:
+            file.write(str(m)+str("\n"))
+    file.close()
 
     
 
@@ -187,6 +200,13 @@ def tubeIsOneColor(tube):
         if not b == c and not b == 0:
             return False
     return True
+
+def inInfiniteLoop(moves):
+    if len(moves) == 0: return False
+    lastMove = moves[-1]
+    count = moves.count(lastMove)
+    if(count > 5): return True
+    return False
 
 def bubblesMatch(fromTube, toTube):
     topFrom = np.where(fromTube>0)[0]
@@ -252,6 +272,6 @@ end = datetime.datetime.now()
 diff = end-start
 print(diff.total_seconds())
 
-# testTubes = [[0,2,2,0],[1,2,3,4],[1,1,1,1],[0,2,2,2],[0,0,0,0]]
-# print(tubeIsAlmostFull(testTubes[4]))
+# testMoves = [[0,2],[1,2],[1,2],[0,2],[2,1],[1,2],[1,2]]
+# inInfiniteLoop(testMoves)
 
