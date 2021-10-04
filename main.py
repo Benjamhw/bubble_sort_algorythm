@@ -1,6 +1,7 @@
 from collections import Counter
 import numpy as np
-import copy as cp
+#import copy as cp
+from copy import copy, deepcopy
 import random
 import datetime
 from tubes import tubesOriginal
@@ -8,7 +9,7 @@ from tubes import tubesOriginal
 
 def solve(tubes):  
 
-    thistubes = cp.deepcopy(tubes)
+    thistubes = deepcopy(tubes)
 
     bestRun = 1000
     bestMoves = []
@@ -52,13 +53,13 @@ def solve(tubes):
         
         if(not isDone(thistubes)):
             #print("Could not solve.")
-            thistubes = cp.deepcopy(tubes)
+            thistubes = deepcopy(tubes)
             badMoves.append(moves)              #Keep track of bad moves    
             continue
 
         successfulRuns += 1
         totalMoves += len(moves)
-        thistubes = cp.deepcopy(tubes)
+        thistubes = deepcopy(tubes)
 
         if len(moves) < bestRun:
             bestRun = len(moves)
@@ -78,7 +79,7 @@ def solve(tubes):
 
 
 def solveRecursive(tubes):
-    thistubes = cp.deepcopy(tubes)
+    thistubes = deepcopy(tubes)
     tubesIt = range(len(thistubes))
     counter = 0
     allSuccessfulMoves = []
@@ -91,24 +92,24 @@ def solveRecursive(tubes):
         counter += 1
         if counter > 40000: 
             return
-
         #BASE
-        # change to one or-if
         if isDone(innertubes):
             done = True
-            if len(allSuccessfulMoves) == 0:
-                allSuccessfulMoves.append(innermoves)
-            elif len(allSuccessfulMoves[-1]) > len(innermoves):
+            if len(allSuccessfulMoves) == 0 \
+                    or len(allSuccessfulMoves[-1]) > len(innermoves):
                 allSuccessfulMoves.append(innermoves)
             return
+        
+        
+
         if (len(innermoves) > 0 and isReversed(innermoves[-1], [fromIndex,toIndex])) \
                 or not validateMove(innertubes,fromIndex,toIndex) \
                 or inInfiniteLoop(innermoves): 
             return
 
-
-        tubes1 = cp.copy(innertubes)
-        moves1 = cp.copy(innermoves)
+        
+        tubes1 = copy(innertubes)
+        moves1 = copy(innermoves)
         
         testMove = move(tubes1, fromIndex, toIndex)
         if testMove[1]:
@@ -157,12 +158,13 @@ def validateMove(tubes, fromIndex, toIndex):
         return False
 
     fromTube = tubes[fromIndex]
-    toTube = tubes[toIndex]
-
     if tubeIsOneColorFull(fromTube) \
             or tubeIsEmpty(fromTube) \
-            or tubeIsFull(toTube) \
             or tubeIsAlmostFull(fromTube):
+        return False
+
+    toTube = tubes[toIndex]
+    if tubeIsFull(toTube):
         return False
 
     if tubeIsOneColor(fromTube) and tubeIsEmpty(toTube):
@@ -277,8 +279,3 @@ solveRecursive(tubesOriginal)
 end = datetime.datetime.now()
 diff = end-start
 print(diff.total_seconds())
-
-# testMoves = [[1,2],[3,4],[7,4],[6,5],[4,7],[5,6],[7,4],[6,5],[4,7],[5,6]]
-# inInfiniteLoop(testMoves)
-
-
