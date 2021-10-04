@@ -79,61 +79,61 @@ def solve(tubes):
 
 def solveRecursive(tubes):
     thistubes = cp.deepcopy(tubes)
+    tubesIt = range(len(thistubes))
     counter = 0
     allSuccessfulMoves = []
-    moves = []
     done = False
-    maxExceeded = 0
 
     def solve(innertubes, innermoves, fromIndex, toIndex):
         nonlocal done
-        nonlocal maxExceeded
         #Safety net for stack overflow
-        nonlocal counter 
+        nonlocal counter
         counter += 1
         if counter > 40000: 
             return
 
         #BASE
         # change to one or-if
-        if isDone(innertubes): 
+        if isDone(innertubes):
             done = True
             if len(allSuccessfulMoves) == 0:
                 allSuccessfulMoves.append(innermoves)
             elif len(allSuccessfulMoves[-1]) > len(innermoves):
                 allSuccessfulMoves.append(innermoves)
             return
-        if len(innermoves) > 0 and isReversed(innermoves[-1], [fromIndex,toIndex]): return
-        if not validateMove(innertubes,fromIndex,toIndex): return
-        if inInfiniteLoop(innermoves): 
+        if (len(innermoves) > 0 and isReversed(innermoves[-1], [fromIndex,toIndex])) \
+                or not validateMove(innertubes,fromIndex,toIndex) \
+                or inInfiniteLoop(innermoves): 
             return
 
+
+        tubes1 = cp.copy(innertubes)
+        moves1 = cp.copy(innermoves)
         
-        tubes1 = cp.deepcopy(innertubes)
-        moves1 = cp.deepcopy(innermoves)
-
         testMove = move(tubes1, fromIndex, toIndex)
-        if testMove[0]:
-            if testMove[1]:
-                moves1.append([toIndex, fromIndex])
-            else:
-                moves1.append([fromIndex, toIndex])
+        if testMove[1]:
+            moves1.append([toIndex, fromIndex])
         else:
+            moves1.append([fromIndex, toIndex])
+
+
+        if len(allSuccessfulMoves) > 0 \
+                and len(moves1) > len(allSuccessfulMoves[-1]):
             return
+        
 
-
-        # RECURSION 
+        # RECURSION
         # for all possible moves at current stage
-        for i in range(len(tubes1)):
-            for j in range(len(tubes1)):
+        for i in tubesIt:
+            for j in tubesIt:
+                if i == j: continue
                 solve(tubes1,moves1,i,j)
 
-    for i in range(len(thistubes)):
-        for j in [x for x in range(len(thistubes)) if x != i]:
-            moves = []
+    for i in tubesIt:
+        for j in tubesIt:
+            if i == j: continue
             counter = 0
-            thistubes = cp.deepcopy(tubes)
-            solve(thistubes,moves,i,j)
+            solve(tubes,[],i,j)
             done = False
     
 
