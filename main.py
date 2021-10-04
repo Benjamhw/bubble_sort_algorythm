@@ -112,9 +112,9 @@ def solveRecursive(tubes):
         
         testMove = move(tubes1, fromIndex, toIndex)
         if testMove[1]:
-            moves1.append([toIndex, fromIndex])
+            moves1.append((toIndex, fromIndex))
         else:
-            moves1.append([fromIndex, toIndex])
+            moves1.append((fromIndex, toIndex))
 
 
         if len(allSuccessfulMoves) > 0 \
@@ -170,7 +170,7 @@ def validateMove(tubes, fromIndex, toIndex):
 
     return bubblesMatch(fromTube, toTube)
 
-def isReversed(lastMove:list, thisMove:list):
+def isReversed(lastMove, thisMove):
     return lastMove[0] == thisMove[1] \
         and lastMove[1] == thisMove[0]
 
