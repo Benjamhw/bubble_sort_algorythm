@@ -91,27 +91,26 @@ def solveRecursive(tubes):
         #Safety net for stack overflow
         nonlocal counter 
         counter += 1
-        if counter > 8000: 
-            maxExceeded += 1
+        if counter > 40000: 
             return
-
-        tubes1 = cp.deepcopy(innertubes)
-        moves1 = cp.deepcopy(innermoves)
 
         #BASE
         # change to one or-if
-        if isDone(tubes1): 
+        if isDone(innertubes): 
             done = True
             if len(allSuccessfulMoves) == 0:
-                allSuccessfulMoves.append(moves1)
-            elif len(allSuccessfulMoves[-1]) > len(moves1):
-                allSuccessfulMoves.append(moves1)
+                allSuccessfulMoves.append(innermoves)
+            elif len(allSuccessfulMoves[-1]) > len(innermoves):
+                allSuccessfulMoves.append(innermoves)
             return
-        if len(moves1) > 0 and isReversed(moves1[-1], [fromIndex,toIndex]): return
-        if not validateMove(tubes1,fromIndex,toIndex): return
-        if inInfiniteLoop(moves1): 
+        if len(innermoves) > 0 and isReversed(innermoves[-1], [fromIndex,toIndex]): return
+        if not validateMove(innertubes,fromIndex,toIndex): return
+        if inInfiniteLoop(innermoves): 
             return
 
+        
+        tubes1 = cp.deepcopy(innertubes)
+        moves1 = cp.deepcopy(innermoves)
 
         testMove = move(tubes1, fromIndex, toIndex)
         if testMove[0]:
