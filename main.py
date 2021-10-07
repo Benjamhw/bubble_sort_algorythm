@@ -1,6 +1,5 @@
 from collections import Counter
 import numpy as np
-#import copy as cp
 from copy import copy, deepcopy
 import random
 import datetime
@@ -28,9 +27,6 @@ def solve(tubes):
             fromIndex = random.randint(0,nTubes-1)
             
             toIndex = random.randint(0,nTubes-1)
-            # inefficient?
-            # if counter == 1: 
-            #     toIndex = nTubes-1
             
             if fromIndex == toIndex: continue
             if not validateMove(thistubes, fromIndex, toIndex):
@@ -99,8 +95,6 @@ def solveRecursive(tubes):
                     or len(allSuccessfulMoves[-1]) > len(innermoves):
                 allSuccessfulMoves.append(innermoves)
             return
-        
-        
 
         if (len(innermoves) > 0 and isReversed(innermoves[-1], [fromIndex,toIndex])) \
                 or not validateMove(innertubes,fromIndex,toIndex) \
